@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxChat - Sign Up</title>
+    <!-- PWA & Mobile Settings -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008069">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MaxChat">
+
+<!-- App Icon for iOS (iPhone) -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png">
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker failed', err));
+        });
+    }
+</script>
+    <style>
+        /* Reuse Login CSS for consistency */
+        :root { --primary: #008069; --light: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: var(--white); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        img.logo { width: 80px; margin-bottom: 10px; }
+        input { width: 90%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; }
+        button { width: 96%; padding: 12px; border: none; border-radius: 10px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top:10px; }
+        .img-link { display: block; margin: 10px 0; font-size: 0.8em; color: #555; text-decoration: none; }
+        .loading { display:none; color: #666; margin-top: 10px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png" alt="MaxChat" class="logo">
+        <h3>Create Account</h3>
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="date" id="dob" placeholder="Date of Birth">
+        <input type="email" id="email" placeholder="Email">
+        <input type="text" id="pic" placeholder="Profile Pic Link (Optional)">
+        <a href="https://postimages.org/" target="_blank" class="img-link">Upload Image Here ↗</a>
+        <input type="text" id="user" placeholder="Username">
+        <input type="password" id="pass" placeholder="Password">
+        
+        <button onclick="signup()">Sign Up</button>
+        <div id="loader" class="loading">Creating Profile...</div>
+        <p style="font-size:0.9em;">Already have an account? <a href="login.html">Login</a></p>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxHFY54vZ8o0WO7J9SD0d9vL6MOQKe35Wd-r0UCC5qYF_4VAKYcMgDxtTKWJfbwpDZGKQ/exec"; 
+
+        function signup() {
+            const name = document.getElementById('name').value;
+            const dob = document.getElementById('dob').value;
+            const email = document.getElementById('email').value;
+            const pic = document.getElementById('pic').value;
+            const user = document.getElementById('user').value;
+            const pass = document.getElementById('pass').value;
+            const loader = document.getElementById('loader');
+
+            if(!name || !user || !pass) return alert("Name, Username and Password are required.");
+
+            loader.style.display = 'block';
+
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    action: "signup", 
+                    name: name, dob: dob, email: email, pic: pic, username: user, password: pass 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                if(data.status === "success") {
+                    alert("Account created! Please login.");
+                    window.location.href = "login.html";
+                } else {
+                    alert("Error: " + data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

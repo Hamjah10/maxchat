@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxChat - Login</title>
+    <!-- PWA & Mobile Settings -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008069">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MaxChat">
+
+<!-- App Icon for iOS (iPhone) -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png">
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker failed', err));
+        });
+    }
+</script>
+    <style>
+        :root { --primary: #008069; --light: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: var(--white); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        img.logo { width: 150px; margin-bottom: 20px; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; background: #fafafa; }
+        button { width: 96%; padding: 12px; border: none; border-radius: 10px; background: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #006b58; }
+        .secondary-btn { background: transparent; color: var(--primary); margin-top: 10px; }
+        .secondary-btn:hover { background: #e6fcf5; }
+        .loading { display:none; color: #666; font-size: 0.9em; margin-top:10px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.postimg.cc/tThQGfR1/logo-full-removebg.png" alt="MaxChat" class="logo">
+        <h2 style="color:#333;">Welcome Back</h2>
+        <input type="text" id="user" placeholder="Username">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="login()">Log In</button>
+        <div id="loader" class="loading">Connecting to database...</div>
+        <button class="secondary-btn" onclick="window.location.href='signup.html'">Create an Account</button>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxHFY54vZ8o0WO7J9SD0d9vL6MOQKe35Wd-r0UCC5qYF_4VAKYcMgDxtTKWJfbwpDZGKQ/exec"; 
+
+        function login() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            const loader = document.getElementById('loader');
+            
+            if(!u || !p) return alert("Please fill all fields");
+            
+            loader.style.display = 'block';
+            
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "login", username: u, password: p })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                if(data.status === "success") {
+                    sessionStorage.setItem("maxchat_user", u);
+                    sessionStorage.setItem("maxchat_name", data.user.name);
+                    sessionStorage.setItem("maxchat_pic", data.user.pic);
+                    window.location.href = "index.html";
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(e => { loader.style.display='none'; alert("Error connecting"); });
+        }
+    </script>
+</body>
+</html>

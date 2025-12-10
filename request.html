@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend Requests</title>
+    <!-- PWA & Mobile Settings -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008069">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MaxChat">
+
+<!-- App Icon for iOS (iPhone) -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png">
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker failed', err));
+        });
+    }
+</script>
+    <style>
+        :root { --primary: #008069; --light: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); margin: 0; }
+        .header { background: white; padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #ddd; }
+        .back-btn { text-decoration: none; font-size: 1.5em; margin-right: 15px; color: #333; }
+        .list { padding: 15px; }
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; }
+        .info { flex: 1; }
+        .btn-allow { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="index.html" class="back-btn">←</a>
+        <h3>Friend Requests</h3>
+    </div>
+    <div class="list" id="reqList">Loading...</div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxHFY54vZ8o0WO7J9SD0d9vL6MOQKe35Wd-r0UCC5qYF_4VAKYcMgDxtTKWJfbwpDZGKQ/exec"; 
+        const myUser = sessionStorage.getItem("maxchat_user");
+
+        if(!myUser) window.location.href = "login.html";
+
+        fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "getRequests", currentUser: myUser })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('reqList');
+            container.innerHTML = "";
+            if(data.requests.length === 0) container.innerHTML = "No pending requests.";
+            
+            data.requests.forEach(r => {
+                let div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <img src="${r.pic}" class="avatar">
+                    <div class="info">
+                        <strong>${r.name}</strong><br>
+                        <small>@${r.from}</small>
+                    </div>
+                    <button class="btn-allow" onclick="allow('${r.from}')">Allow</button>
+                `;
+                container.appendChild(div);
+            });
+        });
+
+        function allow(fromUser) {
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "handleRequest", from: fromUser, to: myUser })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    alert("Accepted!");
+                    location.reload();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

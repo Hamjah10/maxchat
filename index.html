@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MaxChat - Home</title>
+    <!-- PWA & Mobile Settings -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008069">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MaxChat">
+
+<!-- App Icon for iOS (iPhone) -->
+<link rel="apple-touch-icon" href="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png">
+
+<!-- Service Worker Registration -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker failed', err));
+        });
+    }
+</script>
+    <style>
+        /* --- Reset & Base Styles --- */
+        :root { 
+            --primary: #008069; 
+            --primary-dark: #006a57;
+            --light: #f0f2f5; 
+            --white: #ffffff; 
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--light); 
+            margin: 0; 
+            padding: 0;
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
+        }
+
+        /* --- Layout Wrapper (Centers app on Desktop, Full on Mobile) --- */
+        .app-container {
+            max-width: 600px;
+            width: 100%; /* Ensure full width */
+            margin: 0 auto;
+            background: #fff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            padding-bottom: 80px; /* Space for floating button */
+            overflow-x: hidden; /* Fixes the cutout issue */
+        }
+
+        /* --- Header --- */
+        header { 
+            background: var(--primary); 
+            padding: 12px 16px; 
+            color: white; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .logo-area { display: flex; align-items: center; }
+        .logo-area img { height: 32px; display: block; }
+        
+        .profile-btn { 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 2px solid rgba(255,255,255,0.8); 
+            cursor: pointer; 
+            transition: transform 0.2s;
+        }
+        .profile-btn:active { transform: scale(0.95); }
+        
+        /* --- Search Section --- */
+        .search-container { 
+            padding: 12px 16px; 
+            background: white; 
+            border-bottom: 1px solid #f0f0f0;
+            width: 100%;
+        }
+        .search-box { 
+            display: flex; 
+            gap: 8px; 
+            width: 100%;
+            align-items: center;
+        }
+        
+        /* Font-size 16px prevents iOS zoom on focus */
+        input { 
+            flex: 1; 
+            min-width: 0; /* CRITICAL FIX: Allows input to shrink on small screens */
+            padding: 10px 15px; 
+            border-radius: 20px; 
+            border: 1px solid #e0e0e0; 
+            outline: none; 
+            background: #f8f9fa;
+            font-size: 16px; 
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--primary); background: #fff; }
+        
+        .btn-search { 
+            padding: 10px 18px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 20px; 
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap; /* Prevents text from wrapping */
+            flex-shrink: 0; /* Prevents button from being squashed */
+        }
+        .btn-search:active { background: var(--primary-dark); }
+        
+        /* --- Section Titles --- */
+        .section-title { 
+            padding: 15px 16px 8px; 
+            color: var(--primary); 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            background: #fff;
+        }
+        
+        /* --- Lists --- */
+        .user-list { list-style: none; padding: 0; margin: 0; background: white; }
+        
+        .user-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #f5f5f5; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
+        .user-item:active { background: #f5f5f5; }
+        
+        .avatar { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-right: 12px; 
+            background: #eee;
+            flex-shrink: 0;
+        }
+        
+        .info { flex: 1; min-width: 0; /* Prevents text overflow issues */ }
+        .name { 
+            font-weight: 600; 
+            color: #222; 
+            font-size: 1rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .username { font-size: 0.85rem; color: #777; }
+        
+        /* --- Buttons --- */
+        .action-btn { 
+            padding: 6px 14px; 
+            border-radius: 18px; 
+            border: none; 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            flex-shrink: 0;
+        }
+        .btn-add { background: #e6fcf5; color: var(--primary); }
+        .btn-add:active { background: #d0f7ed; }
+        
+        /* --- Floating Request Button --- */
+        .btn-req { 
+            background: var(--primary); 
+            color: white; 
+            position: fixed; 
+            bottom: 25px; 
+            right: 25px; 
+            padding: 14px 24px; 
+            border-radius: 50px; 
+            box-shadow: 0 4px 15px rgba(0,128,105, 0.4); 
+            text-decoration: none; 
+            font-weight: bold;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 200;
+            transition: transform 0.2s;
+            /* Respect safe area for modern phones */
+            margin-bottom: env(safe-area-inset-bottom);
+        }
+        .btn-req:active { transform: scale(0.95); }
+
+        /* --- Loading/Status Styles --- */
+        .status-msg { padding: 20px; text-align: center; color: #888; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Main Wrapper for Mobile View on Desktop -->
+    <div class="app-container">
+        
+        <header>
+            <div class="logo-area">
+                <img src="https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png" alt="MaxChat">
+            </div>
+            <img id="myProfilePic" src="https://i.postimg.cc/br7WQM9z/man-avatar.png" class="profile-btn" onclick="window.location.href='profile.html'">
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search users...">
+                <button class="btn-search" onclick="searchUsers()">Search</button>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+
+        <div class="section-title">My Friends</div>
+        <ul class="user-list" id="friendList">
+            <li class="status-msg">Loading friends...</li>
+        </ul>
+
+    </div> <!-- End .app-container -->
+
+    <a href="request.html" class="btn-req">
+        <span>Requests</span> 🔔
+    </a>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbxHFY54vZ8o0WO7J9SD0d9vL6MOQKe35Wd-r0UCC5qYF_4VAKYcMgDxtTKWJfbwpDZGKQ/exec"; 
+        const myUser = sessionStorage.getItem("maxchat_user");
+
+        // Auth Check
+        if(!myUser) window.location.href = "login.html";
+
+        // Set My Profile Pic in Header
+        const myPic = sessionStorage.getItem("maxchat_pic");
+        if(myPic && myPic !== "undefined") document.getElementById('myProfilePic').src = myPic;
+
+        function loadFriends() {
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getFriends", currentUser: myUser })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('friendList');
+                list.innerHTML = "";
+                
+                if(!data.friends || data.friends.length === 0) {
+                    list.innerHTML = "<li class='status-msg'>No friends yet. Search above!</li>";
+                    return;
+                }
+                
+                data.friends.forEach(f => {
+                    let li = document.createElement('li');
+                    li.className = 'user-item';
+                    li.onclick = () => window.location.href = `chat.html?friend=${f.username}&name=${f.name}`;
+                    
+                    // Fallback for avatar
+                    const avatarSrc = f.pic && f.pic !== "undefined" ? f.pic : 'https://i.postimg.cc/br7WQM9z/man-avatar.png';
+                    
+                    li.innerHTML = `
+                        <img src="${avatarSrc}" class="avatar" loading="lazy">
+                        <div class="info">
+                            <div class="name">${f.name}</div>
+                            <div class="username">@${f.username}</div>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            })
+            .catch(err => {
+                document.getElementById('friendList').innerHTML = "<li class='status-msg'>Error loading friends.</li>";
+                console.error(err);
+            });
+        }
+
+        function searchUsers() {
+            const query = document.getElementById('searchInput').value.trim();
+            const resDiv = document.getElementById('searchResults');
+            
+            if(!query) return;
+
+            resDiv.innerHTML = "<div class='status-msg' style='padding:10px'>Searching...</div>";
+            
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "searchUsers", query: query, currentUser: myUser })
+            })
+            .then(res => res.json())
+            .then(data => {
+                resDiv.innerHTML = "";
+                
+                if(!data.results || data.results.length === 0) {
+                    resDiv.innerHTML = "<div class='status-msg' style='padding:10px'>No users found.</div>";
+                    return;
+                }
+
+                data.results.forEach(u => {
+                    let div = document.createElement('div');
+                    div.className = 'user-item';
+                    // Inline override for search results to differentiate slightly
+                    div.style.background = "#fff";
+                    
+                    const avatarSrc = u.pic && u.pic !== "undefined" ? u.pic : 'https://i.postimg.cc/br7WQM9z/man-avatar.png';
+
+                    div.innerHTML = `
+                        <img src="${avatarSrc}" class="avatar" style="width:40px;height:40px;">
+                        <div class="info">
+                            <div class="name">${u.name}</div>
+                            <div class="username">@${u.username}</div>
+                        </div>
+                        <button class="action-btn btn-add" onclick="event.stopPropagation(); sendReq('${u.username}')">Add +</button>
+                    `;
+                    resDiv.appendChild(div);
+                });
+            })
+            .catch(err => {
+                resDiv.innerHTML = "<div class='status-msg' style='padding:10px'>Search error.</div>";
+            });
+        }
+
+        function sendReq(toUser) {
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "...";
+            btn.disabled = true;
+
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "sendRequest", from: myUser, to: toUser })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                btn.innerText = "Sent";
+            })
+            .catch(err => {
+                alert("Failed to send request");
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        loadFriends();
+    </script>
+</body>
+</html>

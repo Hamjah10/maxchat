@@ -1,0 +1,21 @@
+{
+  "name": "MaxChat",
+  "short_name": "MaxChat",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#008069",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://i.postimg.cc/wjSGxVG2/logo-short-removebg.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
